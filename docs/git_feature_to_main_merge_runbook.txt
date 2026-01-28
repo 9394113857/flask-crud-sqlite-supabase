@@ -1,0 +1,128 @@
+============================================================
+GIT RUNBOOK – MERGE FEATURE BRANCH INTO MAIN
+============================================================
+
+Project:
+flask-crud-sqlite-supabase
+
+Purpose:
+------------------------------------------------------------
+Safely merge feature branch into main branch,
+including cases where Git histories are unrelated.
+
+This runbook documents the exact commands used
+and can be reused in future projects.
+
+============================================================
+STEP 0: ENSURE YOU ARE IN PROJECT ROOT
+============================================================
+
+Example:
+E:\New Experiments\flask-crud-sqlite-supabase
+
+============================================================
+STEP 1: FETCH ALL REMOTE BRANCHES
+============================================================
+
+# Fetch latest branches and commits from origin
+git fetch origin
+
+# This ensures:
+# - main branch exists locally
+# - all remote branches are visible
+
+============================================================
+STEP 2: SWITCH TO MAIN BRANCH
+============================================================
+
+# Checkout main branch
+git checkout main
+
+# Expected:
+# Switched to branch 'main'
+# branch 'main' set up to track 'origin/main'
+
+============================================================
+STEP 3: SYNC MAIN WITH REMOTE
+============================================================
+
+# Pull latest changes from remote main
+git pull origin main
+
+# Ensures local main is up to date before merge
+
+============================================================
+STEP 4: MERGE FEATURE BRANCH (UNRELATED HISTORIES CASE)
+============================================================
+
+# Merge feature branch into main
+# --allow-unrelated-histories is required if Git
+# reports unrelated histories
+git merge feature/registration-crud --allow-unrelated-histories
+
+------------------------------------------------------------
+IF vi EDITOR OPENS (MERGE COMMIT MESSAGE)
+------------------------------------------------------------
+
+# Perform the following steps inside vi:
+
+Press: Esc
+Type:  :wq
+Press: Enter
+
+# This saves the merge commit message and completes the merge
+
+============================================================
+STEP 5: VERIFY MERGE STATUS
+============================================================
+
+# Check branch and status
+git status
+
+# Expected:
+# On branch main
+# nothing to commit, working tree clean
+
+============================================================
+STEP 6: PUSH MAIN BRANCH TO GITHUB
+============================================================
+
+# Push merged main branch to remote repository
+git push origin main
+
+------------------------------------------------------------
+RESULT
+------------------------------------------------------------
+
+- feature/registration-crud successfully merged into main
+- main branch now contains:
+  - Flask backend
+  - Frontend assets
+  - Migrations
+  - Supabase support
+  - Documentation
+- Repository is now production-ready
+
+============================================================
+OPTIONAL CLEANUP (AFTER DEPLOYMENT)
+============================================================
+
+# Delete local feature branch (optional)
+git branch -d feature/registration-crud
+
+# Delete remote feature branch (optional)
+git push origin --delete feature/registration-crud
+
+============================================================
+IMPORTANT NOTES
+============================================================
+
+- Always pull main before merging
+- Never commit secrets (DATABASE_URL, passwords)
+- Use feature branches for development
+- Merge only when feature is stable
+- This workflow matches real production teams
+
+============================================================
+END OF FILE
+============================================================
