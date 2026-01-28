@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card mb-4 shadow">
+  <div class="card-body">
+    <h5>Add User</h5>
+
+    <form method="POST" action="/users" id="regForm">
+      <div class="row g-3">
+
+        <div class="col-md-4">
+          <input class="form-control" name="full_name" placeholder="Full Name" required>
+        </div>
+
+        <div class="col-md-4">
+          <input class="form-control" name="email" placeholder="Email" required>
+        </div>
+
+        <div class="col-md-4">
+          <input class="form-control" name="phone" placeholder="Phone" required>
+        </div>
+
+        <div class="col-md-2">
+          <input class="form-control" name="age" placeholder="Age">
+        </div>
+
+        <div class="col-md-2">
+          <select class="form-select" name="gender">
+            <option value="">Gender</option>
+            <option>Male</option>
+            <option>Female</option>
+          </select>
+        </div>
+
+        <div class="col-md-8">
+          <button class="btn btn-primary w-100">Register</button>
+        </div>
+
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow">
+  <div class="card-body">
+    <h5>Users</h5>
+
+    <table class="table table-bordered table-striped mt-3">
+      <thead class="table-dark">
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Age</th>
+          <th>Gender</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+      {% for u in users %}
+        <tr data-id="{{ u.id }}">
+
+          <td><input class="form-control form-control-sm" value="{{ u.full_name }}" disabled></td>
+          <td><input class="form-control form-control-sm" value="{{ u.email }}" disabled></td>
+          <td><input class="form-control form-control-sm" value="{{ u.phone }}" disabled></td>
+          <td><input class="form-control form-control-sm" value="{{ u.age or '' }}" disabled></td>
+          <td>
+            <select class="form-select form-select-sm" disabled>
+              <option {{ 'selected' if u.gender=='Male' }}>Male</option>
+              <option {{ 'selected' if u.gender=='Female' }}>Female</option>
+            </select>
+          </td>
+
+          <td>
+            <button class="btn btn-warning btn-sm" onclick="editRow(this)">Edit</button>
+            <button class="btn btn-success btn-sm d-none" onclick="saveRow(this)">Save</button>
+
+            <form method="POST" action="/users/delete/{{ u.id }}" class="d-inline">
+              <button class="btn btn-danger btn-sm">Delete</button>
+            </form>
+          </td>
+
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

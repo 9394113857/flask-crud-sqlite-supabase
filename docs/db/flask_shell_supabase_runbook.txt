@@ -1,0 +1,190 @@
+============================================================
+FLASK SHELL – SUPABASE DATABASE VERIFICATION RUNBOOK
+============================================================
+
+Project:
+flask-crud-sqlite-supabase
+
+Branch:
+feature/registration-crud
+
+Purpose:
+------------------------------------------------------------
+1. Temporarily connect Flask app to Supabase Postgres
+2. Open Flask shell
+3. Verify database connection
+4. Verify tables and data using ORM
+5. Exit shell safely
+6. Remove DATABASE_URL
+7. Fall back to SQLite
+
+============================================================
+STEP 0: PREREQUISITES
+============================================================
+
+- Supabase project is active
+- Session Pooler connection string available
+- Supabase maintenance completed
+- venv activated
+- You are in project root
+
+Example path:
+E:\New Experiments\flask-crud-sqlite-supabase
+
+============================================================
+STEP 1: SET DATABASE_URL (TEMPORARY – SESSION POOLER)
+============================================================
+
+# Set Supabase Postgres DB URL only for this terminal session
+$env:DATABASE_URL="postgresql://postgres.uynrtitxhjievlggzvqe:Raghu_9394113857@aws-1-ap-south-1.pooler.supabase.com:5432/postgres"
+
+------------------------------------------------------------
+VERIFY ENV VARIABLE
+------------------------------------------------------------
+echo $env:DATABASE_URL
+
+# Expected:
+# postgresql://postgres.uynrtitxhjievlggzvqe:****@aws-1-ap-south-1.pooler.supabase.com:5432/postgres
+
+============================================================
+STEP 2: OPEN FLASK SHELL (CONNECTED TO SUPABASE)
+============================================================
+
+flask shell
+
+------------------------------------------------------------
+EXPECTED
+------------------------------------------------------------
+Python prompt opens:
+>>>
+
+============================================================
+STEP 3: VERIFY DATABASE CONNECTION (INSIDE SHELL)
+============================================================
+
+# Import DB and model
+from app import db
+from app.models import User
+
+------------------------------------------------------------
+CHECK CONNECTED DATABASE
+------------------------------------------------------------
+
+# Check database URL used by SQLAlchemy
+db.engine.url
+
+# Expected:
+# postgresql://postgres.uynrtitxhjievlggzvqe@aws-1-ap-south-1.pooler.supabase.com/postgres
+
+------------------------------------------------------------
+CHECK AVAILABLE TABLES
+------------------------------------------------------------
+
+db.engine.table_names()
+
+# Expected:
+# ['alembic_version', 'user']
+
+============================================================
+STEP 4: VERIFY DATA USING ORM QUERIES
+============================================================
+
+# Fetch all users
+User.query.all()
+
+# Count users
+User.query.count()
+
+# Fetch latest user
+User.query.order_by(User.created_at.desc()).first()
+
+# Fetch selected fields
+db.session.query(User.full_name, User.email).all()
+
+------------------------------------------------------------
+EXPECTED
+------------------------------------------------------------
+- Queries return data
+- No connection errors
+- Confirms Flask → Supabase → Postgres working
+
+============================================================
+STEP 5: OPTIONAL – INSERT TEST DATA VIA SHELL
+============================================================
+
+# Create a test user
+u = User(
+    full_name="Shell Test User",
+    email="shelltest@example.com",
+    phone="9000000000",
+    age=28,
+    gender="Male"
+)
+
+db.session.add(u)
+db.session.commit()
+
+# Verify insert
+User.query.filter_by(email="shelltest@example.com").first()
+
+------------------------------------------------------------
+VERIFY IN SUPABASE UI
+------------------------------------------------------------
+Supabase → Database → Tables → user
+(New row should appear)
+
+============================================================
+STEP 6: EXIT FLASK SHELL
+============================================================
+
+exit()
+
+============================================================
+STEP 7: STOP FLASK APPLICATION (IF RUNNING)
+============================================================
+
+CTRL + C
+
+============================================================
+STEP 8: REMOVE DATABASE_URL (CRITICAL)
+============================================================
+
+# Remove Supabase DB URL from environment
+Remove-Item Env:DATABASE_URL
+
+------------------------------------------------------------
+VERIFY REMOVAL
+------------------------------------------------------------
+
+echo $env:DATABASE_URL
+
+# Expected:
+# (empty output)
+
+============================================================
+STEP 9: CONFIRM SQLITE FALLBACK
+============================================================
+
+python app.py
+
+------------------------------------------------------------
+RESULT
+------------------------------------------------------------
+- Flask now connects to SQLite (sqlite:///local.db)
+- Same code
+- Same branch
+- Safe local development restored
+
+============================================================
+IMPORTANT SAFETY NOTES
+============================================================
+
+- NEVER commit DATABASE_URL
+- NEVER store DB passwords in git
+- Always remove env var after testing Supabase
+- Use Session Pooler for IPv4 networks
+- Use Flask shell for safe DB verification
+
+============================================================
+END OF FILE
+============================================================

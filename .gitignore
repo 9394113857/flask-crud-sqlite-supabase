@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+.env
+
+# Flask
+instance/
+*.db
+
+# Migrations cache
+migrations/__pycache__/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
