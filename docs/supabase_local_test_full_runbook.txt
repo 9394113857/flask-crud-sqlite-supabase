@@ -1,0 +1,209 @@
+============================================================
+SUPABASE LOCAL TESTING – FLASK PROJECT (FULL RUNBOOK)
+============================================================
+
+Project Name:
+flask-crud-sqlite-supabase
+
+Git Branch:
+feature/registration-crud
+
+Goal:
+------------------------------------------------------------
+1. Temporarily connect local Flask app to Supabase Postgres
+2. Apply migrations
+3. Verify tables + data
+4. Test CRUD via UI
+5. Verify via Flask shell queries
+6. Exit cleanly
+7. Revert back to SQLite safely
+
+============================================================
+STEP 0: PREREQUISITES
+============================================================
+
+- Supabase project created
+- Supabase maintenance completed
+- Session Pooler URL available
+- venv activated
+- You are in project root
+
+Example path:
+E:\New Experiments\flask-crud-sqlite-supabase
+
+============================================================
+STEP 1: SET DATABASE_URL (TEMPORARY – SESSION POOLER)
+============================================================
+
+# Set Supabase Postgres DB URL ONLY for this terminal session
+$env:DATABASE_URL="postgresql://postgres.uynrtitxhjievlggzvqe:Raghu_9394113857@aws-1-ap-south-1.pooler.supabase.com:5432/postgres"
+
+------------------------------------------------------------
+VERIFY
+------------------------------------------------------------
+echo $env:DATABASE_URL
+
+# Expected:
+# postgresql://postgres.uynrtitxhjievlggzvqe:****@aws-1-ap-south-1.pooler.supabase.com:5432/postgres
+
+============================================================
+STEP 2: APPLY MIGRATIONS TO SUPABASE
+============================================================
+
+# Apply existing Alembic migrations to Postgres
+flask db upgrade
+
+------------------------------------------------------------
+EXPECTED SUCCESS
+------------------------------------------------------------
+Running upgrade -> <revision>, initial registration schema
+
+------------------------------------------------------------
+SUPABASE UI CHECK
+------------------------------------------------------------
+Supabase Dashboard → Database → Tables
+
+Expected tables:
+- alembic_version
+- user
+
+============================================================
+STEP 3: VERIFY TABLE STRUCTURE (SUPABASE UI)
+============================================================
+
+Table: user
+Columns:
+- id (PK)
+- full_name
+- email (UNIQUE)
+- phone
+- age
+- gender
+- created_at
+
+If tables exist → migration success confirmed.
+
+============================================================
+STEP 4: RUN APPLICATION (USING SUPABASE DB)
+============================================================
+
+python app.py
+
+Open browser:
+http://127.0.0.1:5000
+
+------------------------------------------------------------
+UI TEST FLOW
+------------------------------------------------------------
+1. Create a user
+2. Update user inline
+3. Delete user
+4. Refresh page
+
+------------------------------------------------------------
+VERIFY IN SUPABASE
+------------------------------------------------------------
+Supabase → Database → Tables → user
+
+Rows should appear and change live.
+
+============================================================
+STEP 5: FLASK SHELL – DB VERIFICATION (IMPORTANT)
+============================================================
+
+# Open Flask shell (uses Supabase DB because env var is set)
+flask shell
+
+------------------------------------------------------------
+INSIDE FLASK SHELL (RUN THESE)
+------------------------------------------------------------
+
+from app import db
+from app.models import User
+
+# Check tables reachable
+db.engine.table_names()
+
+# Fetch all users
+User.query.all()
+
+# Count users
+User.query.count()
+
+# Fetch latest user
+User.query.order_by(User.created_at.desc()).first()
+
+# Query specific fields
+db.session.query(User.full_name, User.email).all()
+
+------------------------------------------------------------
+EXPECTED RESULTS
+------------------------------------------------------------
+- Queries return data
+- No connection errors
+- Confirms Flask → Supabase works
+
+------------------------------------------------------------
+EXIT FLASK SHELL
+------------------------------------------------------------
+exit()
+
+============================================================
+STEP 6: STOP APPLICATION
+============================================================
+
+# Stop Flask server
+CTRL + C
+
+============================================================
+STEP 7: REMOVE DATABASE_URL (CRITICAL)
+============================================================
+
+# Remove Supabase DB URL from environment
+Remove-Item Env:DATABASE_URL
+
+------------------------------------------------------------
+VERIFY REMOVAL
+------------------------------------------------------------
+echo $env:DATABASE_URL
+
+# Expected: (empty output)
+
+============================================================
+STEP 8: CONFIRM SQLITE FALLBACK
+============================================================
+
+# Run app again
+python app.py
+
+------------------------------------------------------------
+RESULT
+------------------------------------------------------------
+- Flask now uses SQLite (sqlite:///local.db)
+- Same code
+- Same branch
+- Zero risk of cloud DB writes
+
+============================================================
+IMPORTANT SAFETY NOTES
+============================================================
+
+- NEVER commit DATABASE_URL
+- NEVER store DB passwords in git
+- Rotate Supabase password before production
+- Render will use DATABASE_URL via Environment Variables
+- Session Pooler is REQUIRED for IPv4 networks
+
+============================================================
+SUMMARY (WHAT THIS PROVES)
+============================================================
+
+✔ Same Flask code works with SQLite and Postgres
+✔ Migrations applied cleanly to Supabase
+✔ CRUD verified via UI and Flask shell
+✔ Safe rollback to SQLite completed
+✔ Production-ready DB workflow established
+
+============================================================
+END OF FILE
+============================================================
