@@ -1,0 +1,164 @@
+# ============================================================
+# FILE: git-merge-vi-editor-workflow.txt
+#
+# PURPOSE:
+#   Step-by-step guide for merging a feature branch into main
+#   when Git opens the VI editor during merge.
+#
+# USE CASE:
+#   feature branch → main branch
+#   including VI editor steps, conflict handling,
+#   and safe push to production.
+#
+# ============================================================
+
+
+# ------------------------------------------------------------
+# STEP 0: Make sure working tree is clean
+# ------------------------------------------------------------
+git status
+# Expect:
+#   nothing to commit, working tree clean
+#
+# If NOT clean:
+#   commit or stash changes before merging
+
+
+# ------------------------------------------------------------
+# STEP 1: Switch to feature branch
+# ------------------------------------------------------------
+git checkout feature-confirm-delete-update
+
+
+# ------------------------------------------------------------
+# STEP 2: Push feature branch to GitHub (set upstream)
+# (First time only)
+# ------------------------------------------------------------
+git push -u origin feature-confirm-delete-update
+# After this, future pushes can be just:
+#   git push
+
+
+# ------------------------------------------------------------
+# STEP 3: Switch to main branch
+# ------------------------------------------------------------
+git checkout main
+
+
+# ------------------------------------------------------------
+# STEP 4: Merge feature branch into main
+# ------------------------------------------------------------
+git merge feature-confirm-delete-update
+#
+# CASE A: Fast-forward merge
+#   - Git merges automatically
+#   - NO VI editor opens
+#   - Skip to STEP 7
+#
+# CASE B: Merge commit required
+#   - Git opens VI editor
+#   - Continue to STEP 5
+
+
+# ------------------------------------------------------------
+# STEP 5: VI EDITOR OPENS (MERGE MESSAGE SCREEN)
+# ------------------------------------------------------------
+# You will see something like:
+#
+#   Merge branch 'feature-confirm-delete-update'
+#
+#   # Please enter a commit message to explain why this
+#   # merge is necessary...
+#
+# DO NOT PANIC. THIS IS NORMAL.
+
+
+# ------------------------------------------------------------
+# STEP 6: VI EDITOR BASIC COMMANDS (MOST IMPORTANT)
+# ------------------------------------------------------------
+# Press:
+#   Esc        -> ensure you are in command mode
+#
+# To SAVE and EXIT (MOST COMMON):
+#   :wq
+#   Enter
+#
+# To EXIT WITHOUT SAVING:
+#   :q!
+#   Enter
+#
+# DO NOT edit anything unless you want a custom message.
+# Default message is perfectly fine.
+
+
+# ------------------------------------------------------------
+# STEP 7: If merge conflicts occur (IMPORTANT CASE)
+# ------------------------------------------------------------
+# Git will STOP and show conflict messages.
+#
+# Files will contain markers like:
+#   <<<<<<< HEAD
+#   =======
+#   >>>>>>> feature-confirm-delete-update
+#
+# WHAT TO DO:
+# 1) Open conflicted file
+# 2) Decide which code to keep
+# 3) Remove conflict markers
+# 4) Save file
+#
+# Then run:
+git add <conflicted-file>
+git commit
+#
+# Git may open VI editor again → use :wq
+
+
+# ------------------------------------------------------------
+# STEP 8: Verify merge completed
+# ------------------------------------------------------------
+git status
+# Expect:
+#   On branch main
+#   nothing to commit, working tree clean
+
+
+# ------------------------------------------------------------
+# STEP 9: Push main branch (PRODUCTION DEPLOY)
+# ------------------------------------------------------------
+git push origin main
+#
+# This triggers Render auto-deployment
+# This is the FINAL production step
+
+
+# ------------------------------------------------------------
+# STEP 10 (OPTIONAL): Delete feature branch locally
+# ------------------------------------------------------------
+git branch -d feature-confirm-delete-update
+
+
+# ------------------------------------------------------------
+# STEP 11 (OPTIONAL): Delete feature branch from GitHub
+# ------------------------------------------------------------
+git push origin --delete feature-confirm-delete-update
+
+
+# ============================================================
+# VI QUICK CHEAT SHEET (REMEMBER THIS)
+# ============================================================
+# Esc       -> command mode
+# :wq      -> save and exit
+# :q!      -> exit without saving
+#
+# NEVER power off or close terminal when VI opens.
+# ALWAYS use Esc + :wq
+#
+# ============================================================
+# FINAL STATE:
+# - feature branch merged safely
+# - main branch stable
+# - production deployed
+# - clean git history
+#
+# ============================================================

@@ -1,0 +1,141 @@
+# ============================================================
+# FILE: gunicorn-command-explained.txt
+#
+# PURPOSE:
+#   Complete word-by-word explanation of the Gunicorn command
+#   used in this Flask + Render + Supabase project.
+#
+# COMMAND:
+#   gunicorn run:app --workers 1 --threads 2 --timeout 120
+#   --max-requests 100 --max-requests-jitter 20
+#
+# ============================================================
+
+
+# ------------------------------------------------------------
+# 1) gunicorn
+# ------------------------------------------------------------
+# Gunicorn is a production-grade WSGI HTTP server for Python.
+# It runs the Flask application and handles incoming HTTP
+# requests from the internet.
+#
+# Flask itself is NOT a production server.
+# Gunicorn sits between the internet and Flask.
+#
+# Think of gunicorn as the "engine" that keeps Flask alive 24x7.
+
+
+# ------------------------------------------------------------
+# 2) run:app
+# ------------------------------------------------------------
+# This tells Gunicorn WHAT Python app to run.
+#
+# Breakdown:
+#   run  -> the Python file run.py
+#   app  -> the Flask application object inside run.py
+#
+# Gunicorn internally does:
+#   from run import app
+#
+# So:
+#   run:app = "load the Flask app object named 'app' from run.py"
+
+
+# ------------------------------------------------------------
+# 3) --workers 1
+# ------------------------------------------------------------
+# A worker is an OS-level PROCESS.
+#
+# --workers 1 means:
+#   - One Python process running Flask
+#   - One memory space
+#   - One set of DB connections
+#
+# This is BEST for Render Free Tier.
+# More workers = more RAM + more DB connections (bad on free tier).
+
+
+# ------------------------------------------------------------
+# 4) --threads 2
+# ------------------------------------------------------------
+# Threads run INSIDE a worker process.
+#
+# --threads 2 means:
+#   - Each worker can handle 2 requests at the same time
+#
+# With:
+#   workers = 1
+#   threads = 2
+#
+# Total concurrent requests = 2
+#
+# This helps with I/O waits (DB, network calls).
+
+
+# ------------------------------------------------------------
+# 5) --timeout 120
+# ------------------------------------------------------------
+# Timeout is the maximum time (in seconds) a request
+# is allowed to run before Gunicorn kills it.
+#
+# Default timeout = 30 seconds
+#
+# --timeout 120 means:
+#   - Allow up to 2 minutes per request
+#
+# This prevents failures during:
+#   - Supabase cold starts
+#   - Slow DB/network operations
+#   - Free-tier latency
+
+
+# ------------------------------------------------------------
+# 6) --max-requests 100
+# ------------------------------------------------------------
+# This tells Gunicorn to RESTART a worker after
+# it has handled 100 requests.
+#
+# Why this is important:
+#   - Python apps slowly leak memory
+#   - Long-running processes become slow
+#
+# Restarting workers keeps the app healthy and fast.
+
+
+# ------------------------------------------------------------
+# 7) --max-requests-jitter 20
+# ------------------------------------------------------------
+# Jitter adds randomness to worker restarts.
+#
+# Instead of restarting exactly at 100 requests:
+#   - Restart happens between 100 and 120
+#
+# This prevents all workers from restarting
+# at the same time (important at scale).
+#
+# Even with 1 worker, this is good practice.
+
+
+# ------------------------------------------------------------
+# FINAL BEHAVIOR SUMMARY
+# ------------------------------------------------------------
+# With this command:
+#
+# - App runs safely on Render Free Tier
+# - 2 requests can be handled concurrently
+# - Long requests are not killed early
+# - Memory leaks are automatically controlled
+# - Worker restarts are graceful and invisible to users
+#
+# This command is PRODUCTION-GRADE and STABLE.
+
+
+# ------------------------------------------------------------
+# FINAL RECOMMENDATION
+# ------------------------------------------------------------
+# KEEP THIS COMMAND AS-IS.
+#
+# Do NOT increase workers on free tier.
+# Revisit tuning only when moving to paid plans.
+#
+# ============================================================

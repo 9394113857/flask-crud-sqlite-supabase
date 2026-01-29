@@ -1,0 +1,3 @@
+// From feature branches to main branch merge flow of vi editor:-
+Esc
+:wq # Enter and now push from main now
