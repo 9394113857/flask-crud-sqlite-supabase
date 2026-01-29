@@ -39,7 +39,7 @@ def update_user(user_id):
     db.session.commit()
     return jsonify({"message": "updated"})
 
-# DELETE
+# DELETE (POST only, safe)
 @main.route("/users/delete/<int:user_id>", methods=["POST"])
 def delete_user(user_id):
     user = User.query.get_or_404(user_id)

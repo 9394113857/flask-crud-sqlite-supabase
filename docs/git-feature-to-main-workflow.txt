@@ -1,0 +1,95 @@
+# ============================================================
+# FILE: git-feature-to-main-workflow.txt
+# PURPOSE:
+#   Standard workflow to:
+#   1) Push feature branch to GitHub (set upstream)
+#   2) Merge feature branch into main
+#   3) Push main (stable, auto-deploy branch)
+#
+# BRANCH NAMING USED:
+#   feature-confirm-delete-update
+#
+# USE THIS EVERY TIME YOU ADD A NEW FEATURE
+# ============================================================
+
+
+# ------------------------------------------------------------
+# STEP 0: Check current branch
+# ------------------------------------------------------------
+git branch
+# Expect:
+# * feature-confirm-delete-update
+#   main
+
+
+# ------------------------------------------------------------
+# STEP 1: Switch to feature branch (if not already)
+# ------------------------------------------------------------
+git checkout feature-confirm-delete-update
+
+
+# ------------------------------------------------------------
+# STEP 2: Push feature branch to GitHub and set upstream
+# (First time only for this branch)
+# ------------------------------------------------------------
+git push -u origin feature-confirm-delete-update
+# After this, future pushes can be just: git push
+
+
+# ------------------------------------------------------------
+# STEP 3: Switch back to main branch
+# ------------------------------------------------------------
+git checkout main
+
+
+# ------------------------------------------------------------
+# STEP 4: Merge feature branch into main
+# ------------------------------------------------------------
+git merge feature-confirm-delete-update
+# Expect: Fast-forward or successful merge
+# If conflicts appear, STOP and resolve before continuing
+
+
+# ------------------------------------------------------------
+# STEP 5: Push main to GitHub (PRODUCTION DEPLOY)
+# ------------------------------------------------------------
+git push origin main
+# Render will auto-deploy from main
+
+
+# ------------------------------------------------------------
+# STEP 6 (OPTIONAL): Delete feature branch locally
+# ------------------------------------------------------------
+git branch -d feature-confirm-delete-update
+
+
+# ------------------------------------------------------------
+# STEP 7 (OPTIONAL): Delete feature branch from GitHub
+# ------------------------------------------------------------
+git push origin --delete feature-confirm-delete-update
+
+
+# ============================================================
+# FINAL STATE:
+# - main branch is stable
+# - feature safely merged
+# - production auto-deployed
+# - clean git history
+# ============================================================
+
+✅ Recommendation for future branch naming (simple & clean)
+
+Use this pattern:
+feature-<short-description>
+
+Examples:
+•	feature-confirm-delete-update
+•	feature-auth-login
+•	feature-soft-delete-users
+•	feature-pagination-users
+
+✔ Easy to read
+✔ Professional
+✔ Scales well as repo grows
+
+
