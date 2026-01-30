@@ -1,0 +1,315 @@
+# ============================================================
+# FILE: supabase-postgres-limits-and-sql-commands.txt
+#
+# PURPOSE:
+#   Complete Supabase (PostgreSQL) reference for:
+#   - Databases
+#   - Tables
+#   - Rows
+#   - Columns
+#   - Sizes
+#   - Limits
+#
+# EACH QUERY IS FOLLOWED BY:
+#   1) WHAT IT DOES
+#   2) POSSIBLE ERRORS
+#   3) WHY ERRORS OCCUR
+#
+# SAFE TO USE IN SUPABASE SQL EDITOR
+# ============================================================
+
+
+# ------------------------------------------------------------
+# 1) LIST ALL DATABASES IN THIS SUPABASE PROJECT
+# ------------------------------------------------------------
+SELECT datname
+FROM pg_database
+WHERE datistemplate = false;
+
+# WHAT THIS DOES:
+# - Lists all real databases (excluding system templates)
+# - In Supabase, you will almost always see ONLY ONE:
+#     postgres
+
+# POSSIBLE ERRORS:
+# - Permission denied (very rare in Supabase)
+
+# WHY ERROR OCCURS:
+# - Happens only if role lacks system catalog access
+# - Supabase normally allows this safely
+
+
+# ------------------------------------------------------------
+# 2) CHECK CURRENT CONNECTED DATABASE
+# ------------------------------------------------------------
+SELECT current_database();
+
+# WHAT THIS DOES:
+# - Shows which database your SQL editor is connected to
+# - Expected output in Supabase:
+#     postgres
+
+# POSSIBLE ERRORS:
+# - NONE (this is always safe)
+
+
+# ------------------------------------------------------------
+# 3) COUNT TOTAL TABLES IN PUBLIC SCHEMA
+# ------------------------------------------------------------
+SELECT COUNT(*) AS total_tables
+FROM information_schema.tables
+WHERE table_schema = 'public';
+
+# WHAT THIS DOES:
+# - Counts all user-created tables
+# - Excludes system tables
+
+# POSSIBLE ERRORS:
+# - NONE
+
+# INDUSTRY NOTE:
+# - Most apps keep tables in `public`
+# - Large systems may use multiple schemas later
+
+
+# ------------------------------------------------------------
+# 4) LIST ALL TABLE NAMES
+# ------------------------------------------------------------
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = 'public'
+ORDER BY table_name;
+
+# WHAT THIS DOES:
+# - Lists every table you created
+# - Alphabetically sorted
+
+# POSSIBLE ERRORS:
+# - NONE
+
+# INDUSTRY NOTE:
+# - Always review table list before destructive operations
+
+
+# ------------------------------------------------------------
+# 5) APPROXIMATE ROW COUNT PER TABLE (FAST & SAFE)
+# ------------------------------------------------------------
+SELECT
+  relname AS table_name,
+  n_live_tup AS approx_rows
+FROM pg_stat_user_tables
+ORDER BY n_live_tup DESC;
+
+# WHAT THIS DOES:
+# - Shows estimated row counts
+# - Uses PostgreSQL statistics
+# - VERY FAST, SAFE FOR BIG TABLES
+
+# POSSIBLE ERRORS:
+# - NONE
+
+# IMPORTANT:
+# - Values are APPROXIMATE, not exact
+# - Perfect for dashboards & monitoring
+
+
+# ------------------------------------------------------------
+# 6) EXACT ROW COUNT FOR "user" TABLE
+# ------------------------------------------------------------
+SELECT COUNT(*) AS total_users
+FROM "user";
+
+# WHAT THIS DOES:
+# - Counts exact number of rows in table "user"
+
+# VERY IMPORTANT NOTE:
+# - "user" IS A RESERVED KEYWORD IN POSTGRESQL
+# - MUST be wrapped in DOUBLE QUOTES
+
+# POSSIBLE ERRORS:
+# - ERROR: syntax error at or near "user"
+# - ERROR: relation user does not exist
+
+# WHY ERRORS OCCUR:
+# - Missing double quotes
+# - Wrong table name
+# - Table is in another schema
+
+# INDUSTRY SUGGESTION:
+# ❌ Avoid naming tables as `user`
+# ✅ Prefer:
+#    users
+#    app_users
+#    account_users
+
+
+# ------------------------------------------------------------
+# 7) COLUMN COUNT PER TABLE
+# ------------------------------------------------------------
+SELECT
+  table_name,
+  COUNT(column_name) AS total_columns
+FROM information_schema.columns
+WHERE table_schema = 'public'
+GROUP BY table_name
+ORDER BY total_columns DESC;
+
+# WHAT THIS DOES:
+# - Shows how many columns each table has
+# - Helps detect over-designed tables
+
+# POSSIBLE ERRORS:
+# - NONE
+
+# INDUSTRY RULE:
+# - 20–50 columns → good design
+# - 100+ columns → rethink schema
+
+
+# ------------------------------------------------------------
+# 8) LIST ALL COLUMNS OF A SPECIFIC TABLE
+# ------------------------------------------------------------
+SELECT
+  column_name,
+  data_type,
+  is_nullable
+FROM information_schema.columns
+WHERE table_name = 'user';
+
+# WHAT THIS DOES:
+# - Shows structure of the table
+# - Column names, types, nullability
+
+# POSSIBLE ERRORS:
+# - Returns empty result if table name is wrong
+
+# WHY:
+# - Table name is case-sensitive in metadata
+# - Schema mismatch (public vs others)
+
+# TIP:
+# - Use LOWERCASE table names always
+
+
+# ------------------------------------------------------------
+# 9) TOTAL DATABASE SIZE
+# ------------------------------------------------------------
+SELECT
+  pg_size_pretty(pg_database_size(current_database())) AS database_size;
+
+# WHAT THIS DOES:
+# - Shows total database storage usage
+# - Includes tables, indexes, WAL, metadata
+
+# POSSIBLE ERRORS:
+# - NONE
+
+# SUPABASE LIMITS:
+# - Free tier ≈ 500 MB
+# - Paid tiers → scalable
+
+
+# ------------------------------------------------------------
+# 10) SIZE OF EACH TABLE (INCLUDING INDEXES)
+# ------------------------------------------------------------
+SELECT
+  relname AS table_name,
+  pg_size_pretty(pg_total_relation_size(relid)) AS total_size
+FROM pg_catalog.pg_statio_user_tables
+ORDER BY pg_total_relation_size(relid) DESC;
+
+# WHAT THIS DOES:
+# - Shows which tables consume most space
+# - Includes indexes (very important)
+
+# POSSIBLE ERRORS:
+# - NONE
+
+# INDUSTRY PRACTICE:
+# - Monitor this regularly
+# - Large tables need indexing & cleanup strategies
+
+
+# ============================================================
+# POSTGRESQL + SUPABASE REAL LIMITS
+# ============================================================
+
+# DATABASE:
+# - Databases per Supabase project : 1
+# - Max database size              : Plan-based
+# - PostgreSQL theoretical limit   : Exabytes
+
+
+# TABLES:
+# - Max tables per database        : Unlimited
+# - Practical usage               : Thousands
+# - Limit factor                  : Disk & performance
+
+
+# ROWS:
+# - Max rows per table             : Unlimited
+# - Practical limit               : Disk size
+# - Millions / billions supported
+
+
+# COLUMNS:
+# - Max columns per table          : 1600
+# - Recommended                   : < 50
+# - >100 columns                  : Schema redesign needed
+
+
+# COLUMN SIZE:
+# - TEXT / VARCHAR                : 1 GB per column
+# - Max row size                  : ~1.6 TB
+
+
+# INDEXES:
+# - Unlimited indexes per table
+# - Max 32 columns per index
+
+
+# ============================================================
+# INDUSTRY-STANDARD SUGGESTIONS (VERY IMPORTANT)
+# ============================================================
+
+# 1) NEVER name tables using reserved keywords
+#    ❌ user
+#    ❌ order
+#    ❌ group
+#    ✅ users
+#    ✅ orders
+
+# 2) ALWAYS use snake_case
+#    users, created_at, updated_at
+
+# 3) ADD indexes early for:
+#    - foreign keys
+#    - email
+#    - lookup columns
+
+# 4) AVOID SELECT *
+#    Always specify columns in production queries
+
+# 5) MONITOR table sizes monthly
+
+# 6) USE approximate counts for dashboards
+#    Exact COUNT(*) only for small tables
+
+# 7) KEEP schema simple
+#    Normalize before adding more columns
+
+
+# ============================================================
+# FINAL SUMMARY
+# ============================================================
+# ✔ One main database
+# ✔ Unlimited tables
+# ✔ Unlimited rows
+# ✔ Max 1600 columns per table
+# ✔ Database size depends on Supabase plan
+# ✔ Schema changes are safe and supported
+#
+# Your current Flask + Supabase setup is
+# WELL WITHIN SAFE LIMITS.
+#
+# ============================================================
